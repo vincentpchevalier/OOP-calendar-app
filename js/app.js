@@ -1,7 +1,7 @@
 console.log('app.js');
 
 const btnCalendar = document.getElementById('btn-calendar');
-const calContainer = document.getElementById('agenda');
+const calContainer = document.getElementById('calendar');
 
 class App {
 	_agenda;
@@ -12,12 +12,19 @@ class App {
 	}
 
 	init() {
-		this._agenda = new Agenda('calendar', 'private');
+		this._agenda = new Agenda('calendar', 'public');
 	}
 
 	render() {
+		console.log(this); // show this with and without the bind on the callback function in the addEventListener
 		console.log('App rendered');
 		console.log(this._agenda);
+
+		if (this._agenda.security === 'private') {
+			console.log('Private mode: calendar not available');
+			return;
+		}
+		this._agenda.createCalendar();
 	}
 }
 
@@ -40,7 +47,6 @@ class Agenda {
 
 		this.today = this._getCurrentDate();
 		this.month = this._getMonthName(this.today);
-		this.createCalendar();
 	}
 
 	get security() {
@@ -57,13 +63,43 @@ class Agenda {
 	}
 
 	createCalendar() {
-		this._getDaysOfWeek(this.today);
+		const calendarDays = this._getDaysOfWeek(this.today); // this returns an object with the days of the week and the dates on the calendar relative to today
+		console.log('daysOfWeek', calendarDays);
 		this.calendarStyle(this.mode);
+
+		const df = document.createDocumentFragment();
+		const monthText = document.createElement('h2');
+		const daysList = document.createElement('ul');
+
+		const dateCellHTML = calendarDays.dates
+			.map((date, i) => {
+				const dayName = calendarDays.daysNames[i];
+				return `
+        <li class="dateCell">
+						<p class="day">${dayName}</p>
+						<p class="date">${date}</p>
+					</li>
+      `;
+			})
+			.join('');
+
+		daysList.innerHTML = dateCellHTML;
+		monthText.textContent = this.month;
+		df.appendChild(monthText);
+		df.appendChild(daysList);
+		calContainer.innerHTML = '';
+		calContainer.appendChild(df);
 	}
 
 	calendarStyle(mode) {
-		if (mode === 'calendar') {
-			console.log('Mode: calendar');
+		if (mode === 'agenda') {
+			console.log('Mode: agenda');
+			calContainer.classList.add('agenda');
+		}
+
+		if (mode === 'list') {
+			console.log('Mode: list');
+			calContainer.classList.add('list');
 		}
 	}
 
@@ -78,6 +114,7 @@ class Agenda {
 			this.dates.push(newDate.getDate() + i);
 			this.dayOfWeek.push(this.daysNames[(newDate.getDay() + i + 3) % 7]);
 		}
+		return { dates: this.dates, daysNames: this.daysNames };
 	}
 
 	_getMonthName(date) {
