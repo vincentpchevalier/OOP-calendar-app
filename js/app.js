@@ -1,10 +1,10 @@
 console.log('app.js');
 
+const currentDateDisplay = document.querySelector('.current-date');
 const btnCalendar = document.getElementById('btn-calendar');
 const calContainer = document.getElementById('calendar');
 
 class App {
-	_agenda;
 	constructor() {
 		this.init();
 		btnCalendar.addEventListener('click', this.render.bind(this));
@@ -12,23 +12,27 @@ class App {
 	}
 
 	init() {
-		this._agenda = new Agenda('calendar', 'public');
+		this.calendar = new Calendar('agenda', 'public');
+		this.calendar.showCurrentDate();
 	}
 
 	render() {
 		console.log(this); // show this with and without the bind on the callback function in the addEventListener
 		console.log('App rendered');
-		console.log(this._agenda);
+		console.log(this.calendar);
 
-		if (this._agenda.security === 'private') {
+		if (this.calendar.security === 'private') {
 			console.log('Private mode: calendar not available');
 			return;
 		}
-		this._agenda.createCalendar();
+		this.calendar.createCalendar();
 	}
 }
 
-class Agenda {
+class Calendar {
+	#user = 'John Doe';
+	#security = 'public';
+	mode = 'agenda';
 	dates = [];
 	dayOfWeek = [];
 	daysNames = [
@@ -41,35 +45,23 @@ class Agenda {
 		'Saturday',
 	];
 
-	constructor(mode = 'calendar', security = 'public') {
+	constructor(mode, security) {
 		this.mode = mode;
-		this.security = security;
+		this.#security = security;
 
-		this.today = this._getCurrentDate();
-		this.month = this._getMonthName(this.today);
-	}
-
-	get security() {
-		return this._security;
-	}
-
-	set security(value) {
-		console.log('Value: ', value);
-		if (value === 'public' || value === 'private') {
-			this._security = value;
-		} else {
-			console.log('Invalid security value');
-		}
+		this.today = this.getCurrentDate();
+		this.month = this.getMonthName(this.today);
 	}
 
 	createCalendar() {
-		const calendarDays = this._getDaysOfWeek(this.today); // this returns an object with the days of the week and the dates on the calendar relative to today
+		// this returns an object with the days of the week and the dates on the calendar relative to today
+		const calendarDays = this._getDaysOfWeek(this.today);
 		console.log('daysOfWeek', calendarDays);
-		this.calendarStyle(this.mode);
 
 		const df = document.createDocumentFragment();
 		const monthText = document.createElement('h2');
 		const daysList = document.createElement('ul');
+		daysList.classList.add('days', this.mode === 'agenda' ? 'agenda' : 'list');
 
 		const dateCellHTML = calendarDays.dates
 			.map((date, i) => {
@@ -91,24 +83,24 @@ class Agenda {
 		calContainer.appendChild(df);
 	}
 
-	calendarStyle(mode) {
-		if (mode === 'agenda') {
-			console.log('Mode: agenda');
-			calContainer.classList.add('agenda');
-		}
-
-		if (mode === 'list') {
-			console.log('Mode: list');
-			calContainer.classList.add('list');
-		}
+	showCurrentDate() {
+		console.log('Current date: ', this.today);
+		currentDateDisplay.textContent = this.month + ' ' + this.today.getDate();
 	}
 
-	_getCurrentDate() {
+	getCurrentDate() {
 		return new Date();
+	}
+
+	getMonthName(date) {
+		return date.toLocaleDateString('en-US', { month: 'long' });
 	}
 
 	_getDaysOfWeek(date) {
 		console.log('date', date);
+		this.dates = [];
+		this.dayOfWeek = [];
+
 		for (let i = -3; i <= 3; i++) {
 			const newDate = new Date(date);
 			this.dates.push(newDate.getDate() + i);
@@ -117,8 +109,17 @@ class Agenda {
 		return { dates: this.dates, daysNames: this.daysNames };
 	}
 
-	_getMonthName(date) {
-		return date.toLocaleDateString('en-US', { month: 'long' });
+	get security() {
+		return this.#security; // Add the # to indicate that this is a private property that should not be accessed from outside the class and should only be retrieved using the get method
+	}
+
+	set security(value) {
+		console.log('Value: ', value);
+		if (value === 'public' || value === 'private') {
+			this.#security = value; // Add the # to indicate that this is a private property that should not be accessed from outside the class and should only be updated using the set method
+		} else {
+			console.log('Invalid security value');
+		}
 	}
 }
 
