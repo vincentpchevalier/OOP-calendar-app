@@ -7,7 +7,8 @@ class App {
 	_agenda;
 	constructor() {
 		this.init();
-		btnCalendar.addEventListener('click', this.render.bind(this)); // ensures that this refers to the right object which is the App class
+		btnCalendar.addEventListener('click', this.render.bind(this));
+		// In order to bind the App class to the render method, we need to bind it with the 'this' keyword. It ensures that 'this' refers to the right object which is the App class
 	}
 
 	init() {
