@@ -1,6 +1,24 @@
 console.log('app.js');
 
+const btnCalendar = document.getElementById('btn-calendar');
 const calContainer = document.getElementById('agenda');
+
+class App {
+	_agenda;
+	constructor() {
+		this.init();
+		btnCalendar.addEventListener('click', this.render.bind(this)); // ensures that this refers to the right object which is the App class
+	}
+
+	init() {
+		this._agenda = new Agenda('calendar', 'private');
+	}
+
+	render() {
+		console.log('App rendered');
+		console.log(this._agenda);
+	}
+}
 
 class Agenda {
 	dates = [];
@@ -15,18 +33,37 @@ class Agenda {
 		'Saturday',
 	];
 
-	constructor() {
-		this.init();
+	constructor(mode = 'calendar', security = 'public') {
+		this.mode = mode;
+		this.security = security;
+
 		this.today = this._getCurrentDate();
 		this.month = this._getMonthName(this.today);
+		this.createCalendar();
 	}
 
-	init() {
-		this.render();
+	get security() {
+		return this._security;
 	}
 
-	render() {
-		console.log('App rendered');
+	set security(value) {
+		console.log('Value: ', value);
+		if (value === 'public' || value === 'private') {
+			this._security = value;
+		} else {
+			console.log('Invalid security value');
+		}
+	}
+
+	createCalendar() {
+		this._getDaysOfWeek(this.today);
+		this.calendarStyle(this.mode);
+	}
+
+	calendarStyle(mode) {
+		if (mode === 'calendar') {
+			console.log('Mode: calendar');
+		}
 	}
 
 	_getCurrentDate() {
@@ -34,6 +71,7 @@ class Agenda {
 	}
 
 	_getDaysOfWeek(date) {
+		console.log('date', date);
 		for (let i = -3; i <= 3; i++) {
 			const newDate = new Date(date);
 			this.dates.push(newDate.getDate() + i);
@@ -46,4 +84,4 @@ class Agenda {
 	}
 }
 
-const app = new Agenda();
+const app = new App();
